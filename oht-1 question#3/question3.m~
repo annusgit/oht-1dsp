@@ -98,7 +98,7 @@ xlabel('t (seconds)'); ylabel('x(t) zero order held');
 % plot(t, square_train);
 
 
-t = 0: 0.001: 10;       % Time vector 
+t = 0: 0.001: 10;      % Time vector 
 w = 1;                      % pulse width
 d = w/2: w*2: 10;     % delay vector
 y2 = pulstran(t, d, 'rectpuls', w); 
