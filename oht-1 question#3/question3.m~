@@ -13,12 +13,12 @@
 
 Fs = 50; rows = 2; cols = 2;
 t = linspace(0,1,Fs);
-x = [];
-x(0<=t & t<=0.5) = 0.5;
-x(0.5<t & t<=1) = -0.5; figure; subplot(rows,cols,1);
-plot(t,x); title('Original Signal'); 
+referece_sine_for_creating_rect_train = [];
+referece_sine_for_creating_rect_train(0<=t & t<=0.5) = 0.5;
+referece_sine_for_creating_rect_train(0.5<t & t<=1) = -0.5; figure; subplot(rows,cols,1);
+plot(t,referece_sine_for_creating_rect_train); title('Original Signal'); 
 xlabel('t (seconds)'); ylabel('x(t)'); hold on;
-[W, f] = plot_spectrum(x, Fs); subplot(rows,cols,2); hold on;
+[W, f] = plot_spectrum(referece_sine_for_creating_rect_train, Fs); subplot(rows,cols,2); hold on;
 plot(W, real(f)); title('Magnitude Spectrum of original signal'); 
 xlabel('Frequency (Hz)'); ylabel('magnitude of X(F)'); grid on;
 % disp(length(t));
@@ -35,7 +35,7 @@ cut_off_freq = 20; % this is in Hz, so it's analog!
 % 20/500
 [b, a] = butter(3, cut_off_freq/(Fs/2)); % the second arg=1 corresponds to fs/2
 % apply the butterworth filter
-x_filtered = filter(b, a, x);
+x_filtered = filter(b, a, referece_sine_for_creating_rect_train);
 % plot to see if it worked 
 subplot(rows,cols,3); plot(t,x_filtered); 
 title('Filtered Signal'); 
@@ -53,7 +53,7 @@ figure; % subplot(rows, cols, 5);
 % because we know that 2*pi*f/Fs = w ==> f = Fs*w/(2*pi)
 plot(w*Fs/(2*pi), abs(h)); grid on; 
 title('frequency response of butterworth filter'); 
-xlabel('Frequency (Hz)'); ylabel('H(F) of the filter')
+xlabel('Frequency (Hz)'); ylabel('H(F) of the filter');
 
 
 %%
@@ -62,11 +62,11 @@ xlabel('Frequency (Hz)'); ylabel('H(F) of the filter')
 % using a zero-order hold filter followed by quantization
 
 % apply a zero order hold filter
-Ts = 0.01; % this is our sampling time period
-zero_order_held = zoh(ones(1,length(x_filtered))*Ts, x_filtered, t);
-figure;
-plot(t, zero_order_held); title('zero order hold'); 
-xlabel('t (seconds)'); ylabel('x(t) zero order held');
+% Ts = 0.01; % this is our sampling time period
+% zero_order_held = zoh(ones(1,length(x_filtered))*Ts, x_filtered, t);
+% figure;
+% plot(t, zero_order_held); title('zero order hold'); 
+% xlabel('t (seconds)'); ylabel('x(t) zero order held');
 
 % generate a periodic rectangular pulse train for performing a zero order
 % hold and then we multiply our filtered signal with this thing in time
@@ -97,13 +97,52 @@ xlabel('t (seconds)'); ylabel('x(t) zero order held');
 % square_train = square(2*pi*signal_frequency*nyq_t, 50); % here we have 50% duty cycle
 % plot(t, square_train);
 
+% 
+% samp_freq = 50;              % this is how many samples we want in one second
+% % t = 0: 1/100: 1;              % Time vector 
+% w = 1/(2*samp_freq);    % pulse width
+% d = w/2: w*2: 10;          % delay vector
+% rect_train = pulstran(t,d,'rectpuls', w);
+% sine = sin(2*pi*100*t/Fs);
+% plot(t, sine.*rect_train); 
+% set(gca, 'Ylim', [-0.1 1.1]); 
 
-t = 0: 0.001: 10;      % Time vector 
-w = 1;                      % pulse width
-d = w/2: w*2: 10;     % delay vector
-y2 = pulstran(t, d, 'rectpuls', w); 
-plot(t, y2); 
-set(gca, 'Ylim', [-0.1 1.1]); 
+% % figure;
+% t = linspace(0,3*pi)';
+% samp_freq = 10; % its reciprocal is the sampling time period
+% % t = linspace(0,1,1000);
+% rect_train = sin(2*pi*samp_freq*t);
+% rect_train(rect_train < 0) = 0; rect_train(rect_train > 0) = 1;
+% zero_order_held = x_filtered.*rect_train;
+% % plot(t, x_filtered); hold on;
+% plot(t,zero_order_held); grid on; 
+% % [W_x, f] = plot_spectrum(zero_order_held, Fs); subplot(rows,cols,4); hold on;
+% % plot(W_x, real(f)); title('Magnitude Spectrum of filtered signal'); 
+
+% zero order hold will be applied now, with frequency fs,
+% upto upper_limit_on_t
+figure;
+clc; fs = 2; upper_limit_on_t = length(t);
+indices = ceil(0.1: 0.99/fs: upper_limit_on_t);
+discrete_t = linspace(0,1,length(indices));
+discrete_x = x_filtered(indices);
+stem(discrete_t, discrete_x);
+
+
+%%
+% ============================== question #4 ==============================
+
+% Now we shall do some discrete-time signal processing
+
+
+
+
+
+
+
+
+
+
 
 
 

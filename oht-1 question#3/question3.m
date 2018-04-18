@@ -13,12 +13,12 @@
 
 Fs = 50; rows = 2; cols = 2;
 t = linspace(0,1,Fs);
-x = [];
-x(0<=t & t<=0.5) = 0.5;
-x(0.5<t & t<=1) = -0.5; figure; subplot(rows,cols,1);
-plot(t,x); title('Original Signal'); 
+referece_sine_for_creating_rect_train = [];
+referece_sine_for_creating_rect_train(0<=t & t<=0.5) = 0.5;
+referece_sine_for_creating_rect_train(0.5<t & t<=1) = -0.5; figure; subplot(rows,cols,1);
+plot(t,referece_sine_for_creating_rect_train); title('Original Signal'); 
 xlabel('t (seconds)'); ylabel('x(t)'); hold on;
-[W, f] = plot_spectrum(x, Fs); subplot(rows,cols,2); hold on;
+[W, f] = plot_spectrum(referece_sine_for_creating_rect_train, Fs); subplot(rows,cols,2); hold on;
 plot(W, real(f)); title('Magnitude Spectrum of original signal'); 
 xlabel('Frequency (Hz)'); ylabel('magnitude of X(F)'); grid on;
 % disp(length(t));
@@ -35,7 +35,7 @@ cut_off_freq = 20; % this is in Hz, so it's analog!
 % 20/500
 [b, a] = butter(3, cut_off_freq/(Fs/2)); % the second arg=1 corresponds to fs/2
 % apply the butterworth filter
-x_filtered = filter(b, a, x);
+x_filtered = filter(b, a, referece_sine_for_creating_rect_train);
 % plot to see if it worked 
 subplot(rows,cols,3); plot(t,x_filtered); 
 title('Filtered Signal'); 
@@ -53,7 +53,7 @@ figure; % subplot(rows, cols, 5);
 % because we know that 2*pi*f/Fs = w ==> f = Fs*w/(2*pi)
 plot(w*Fs/(2*pi), abs(h)); grid on; 
 title('frequency response of butterworth filter'); 
-xlabel('Frequency (Hz)'); ylabel('H(F) of the filter')
+xlabel('Frequency (Hz)'); ylabel('H(F) of the filter');
 
 
 %%
@@ -61,51 +61,32 @@ xlabel('Frequency (Hz)'); ylabel('H(F) of the filter')
 % Now we will do continuous to discrete domain conversion
 % using a zero-order hold filter followed by quantization
 
-% apply a zero order hold filter
-Ts = 0.01; % this is our sampling time period
-zero_order_held = zoh(ones(1,length(x_filtered))*Ts, x_filtered, t);
+% zero order hold will be applied now, with frequency fs,
+% upto upper_limit_on_t
 figure;
-plot(t, zero_order_held); title('zero order hold'); 
-xlabel('t (seconds)'); ylabel('x(t) zero order held');
+clc; fs = 2; upper_limit_on_t = length(t);
+indices = ceil(0.1: 0.99/fs: upper_limit_on_t);
+signal_n = linspace(0,1,length(indices));
+discrete_x = x_filtered(indices);
+stem(signal_n, discrete_x);
 
-% generate a periodic rectangular pulse train for performing a zero order
-% hold and then we multiply our filtered signal with this thing in time
-% domain for getting a zero-order hold action
+% figure;
+% [W_x, f] = plot_spectrum(discrete_x, fs*Fs); 
+% plot(W_x, real(f)); title('Magnitude Spectrum of discrete signal'); 
 
-% old_vals = [1e6, 50e3];
-% samp_freq = 2*Fs; repitition_freq = 1e3;
-% 
-% t = 0 : 1/samp_freq : 1;     % this is the frequency of sampling the given signal, in the middle
-% d = 0 : 1/repitition_freq : 1;  % this is our repition frequency
-% y = pulstran(t,d,@rectpuls,1e-5);
-% plot(t,y);  % sin(2*pi*10e4*t/Fs)
-% axis([0 0.001 0 1.5])
-% 
-% w=50;               % positive signal width in percentage
-% F=1;                % signal frequency
-% T=1/F;              % signal period 
-% w0=2*pi*F;          % signal pulse
-% ts=T/50;            % sample time
-% np=2;               % number of period = np*2
-% t=-np*T:ts:np*T;   % time vector allowing np*2 period
-% y=square(w0*(t-T*w/200),w);
-% close;plot(t,y,'r');
+%%
+% ============================== question #4 ==============================
 
-% signal_frequency = 1000; % how many sample you need? let's say 10
-% nyq_frequency = 2*Fs;
-% nyq_t = linspace(0, 1, nyq_frequency);
-% square_train = square(2*pi*signal_frequency*nyq_t, 50); % here we have 50% duty cycle
-% plot(t, square_train);
+% Now we shall do some discrete-time signal processing
 
+figure;
+system_n = 1:1:100;
+system_h = 1/2*(1-cos(2*pi*system_n/20));
+stem(system_n, system_h);
 
-t = 0: 0.001: 10;       % Time vector 
-w = 1;                      % pulse width
-d = w/2: w*2: 10;     % delay vector
-y2 = pulstran(t, d, 'rectpuls', w); 
-plot(t, y2); 
-set(gca, 'Ylim', [-0.1 1.1]); 
-
-
+% Now we shall convolve them
+y_n = conv(system_n, discrete_x);
+stem(y_n);
 
 
 
